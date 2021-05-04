@@ -1,0 +1,18 @@
+#loadingContainer {
+  height: 100%;
+  width: auto;
+  display: grid;
+}
+
+#loadingText {
+  grid-row: 1;
+  grid-column: 0;
+  margin: auto;
+  color: greenyellow;
+}
+
+#spinner {
+  grid-row: 0;
+  grid-column: 0;
+  margin: auto;
+}

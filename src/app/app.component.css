@@ -1,3 +1,9 @@
+#sidenav-container {
+  background-color: black;
+  height: 100%;
+  width: auto;
+}
+
 #content {
   position: relative;
 }

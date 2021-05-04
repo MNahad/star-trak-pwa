@@ -25,15 +25,10 @@ import { BreakpointObserver } from '@angular/cdk/layout';
   styleUrls: ['./space.component.css']
 })
 export class SpaceComponent implements OnInit {
-  constructor(
-    private satelliteService: SatelliteService.SatelliteService,
-    private breakpointObserver: BreakpointObserver,
-  ) { }
-
   private EARTH_RADIUS_KM = 6371;
 
-  @ViewChild('loadingElement')
-  private loadingElement: ElementRef | undefined;
+  @ViewChild('loadingContainer')
+  private loadingContainer: ElementRef | undefined;
 
   @ViewChild('rendererContainer')
   private rendererContainer: ElementRef | undefined;
@@ -45,19 +40,9 @@ export class SpaceComponent implements OnInit {
 
   private space = new Object3D();
 
-  private earth = new Mesh(
-    new SphereGeometry(this.EARTH_RADIUS_KM, 32, 32),
-    new MeshBasicMaterial({
-      map: this.loader.load('../assets/land_ocean_ice_8192.png'),
-    }),
-  );
+  private earth = new Mesh(new SphereGeometry(this.EARTH_RADIUS_KM, 32, 32));
 
-  private sky = new Mesh(
-    new SphereGeometry(100, 8, 8),
-    new MeshBasicMaterial({
-      map: this.loader.load('../assets/starmap_2020_4k.png'),
-    }),
-  );
+  private sky = new Mesh(new SphereGeometry(100, 8, 8));
 
   private satVector = new Vector3();
   private satMatrix = new Matrix4();
@@ -70,16 +55,37 @@ export class SpaceComponent implements OnInit {
   private timingFrame = 0;
   private timingClock = 0;
 
-  animate(timestamp: number): void {
+  constructor(
+    private satelliteService: SatelliteService.SatelliteService,
+    private breakpointObserver: BreakpointObserver,
+  ) {
+    Promise.all([
+      this.loader.loadAsync('../assets/land_ocean_ice_8192.png').then(texture => {
+        (this.earth.material as Material).dispose();
+        (this.earth.material as Material) = new MeshBasicMaterial({
+          map: texture,
+        });
+      }),
+      this.loader.loadAsync('../assets/starmap_2020_4k.png').then(texture => {
+        (this.sky.material as Material).dispose();
+        (this.sky.material as Material) = new MeshBasicMaterial({
+          map: texture,
+          side: BackSide,
+        });
+      }),
+    ]).then(() => this.display());
+  }
+
+  animate(timestampMs: number): void {
     window.requestAnimationFrame((timestamp: number) => this.animate(timestamp));
-    this.earth.rotateY(2 * Math.PI / (24 * 3600 * 1000) * (timestamp - this.timingFrame));
-    this.timingFrame = timestamp;
+    this.earth.rotateY(2 * Math.PI / (24 * 3600 * 1000) * (timestampMs - this.timingFrame));
+    this.timingFrame = timestampMs;
     this.controls.update();
 
-    if (timestamp - this.timingClock >= 1000) {
+    if (timestampMs - this.timingClock >= 1000) {
       this.satelliteService.setAllSats();
-      this.updateMesh();
-      this.timingClock = timestamp;
+      this.updateSatMesh();
+      this.timingClock = timestampMs;
     }
     this.renderer.render(this.scene, this.camera);
   }
@@ -93,7 +99,6 @@ export class SpaceComponent implements OnInit {
     this.space.add(this.earth);
 
     this.sky.rotateY(Math.PI / 2);
-    (this.sky.material as Material).side = BackSide;
     this.space.add(this.sky);
 
     this.earth.add(this.sats);
@@ -112,22 +117,22 @@ export class SpaceComponent implements OnInit {
     this.animate(0);
   }
 
-  ngAfterViewInit(): void {
+  private display(): void {
     if (this.rendererContainer) {
-      this.loadingElement?.nativeElement.remove();
+      this.loadingContainer?.nativeElement.remove();
       this.rendererContainer.nativeElement.appendChild(this.renderer.domElement);
+      this.breakpointObserver.observe([
+        '(orientation: portrait)',
+        '(orientation: landscape)',
+      ]).subscribe(() => {
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+      });
     }
-    this.breakpointObserver.observe([
-      '(orientation: portrait)',
-      '(orientation: landscape)',
-    ]).subscribe(_ => {
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.camera.aspect = window.innerWidth / window.innerHeight;
-      this.camera.updateProjectionMatrix();
-    });
   }
 
-  private updateMesh(): void {
+  private updateSatMesh(): void {
     this.satsGeometry.dispose();
     const satellites = this.satelliteService.getAllSats();
     const satsArray: BufferGeometry[] = [];

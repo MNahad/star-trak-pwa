@@ -1,0 +1,15 @@
+#content {
+  position: relative;
+}
+
+#sidenav {
+  background-color: transparent;
+}
+
+#sidenav-button, #router-outlet {
+  position: absolute;
+}
+
+#sidenav-button {
+  z-index: 10;
+}

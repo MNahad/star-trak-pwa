@@ -1,0 +1,16 @@
+<mat-sidenav-container>
+  <mat-sidenav id="sidenav" #sidenav role="navigation">
+    <nav>
+      <a mat-raised-button color="primary" routerLink="/space">Space Mode</a>
+      <a mat-raised-button color="primary" routerLink="/observer">Observer Mode</a>
+    </nav>
+    <a mat-raised-button color="accent" href="https://github.com/MNahad">POWERED BY @MNAHAD</a>
+  </mat-sidenav>
+  <mat-sidenav-content id="content">
+    <button id="sidenav-button" mat-icon-button color="accent" (click)="sidenav.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <router-outlet id="router-outlet">
+    </router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

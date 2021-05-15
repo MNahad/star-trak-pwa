@@ -10,6 +10,14 @@
     <button id="sidenav-button" mat-icon-button color="accent" (click)="sidenav.toggle()">
       <mat-icon>menu</mat-icon>
     </button>
+    <div #loadingContainer id="loadingContainer">
+      <pre id="loadingText">
+        STAR TRAK
+    
+        Track Starlink Satellites in real time
+      </pre>
+      <mat-spinner id="spinner"></mat-spinner>
+    </div>
     <router-outlet id="router-outlet">
     </router-outlet>
   </mat-sidenav-content>

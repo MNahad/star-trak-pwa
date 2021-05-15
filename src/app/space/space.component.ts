@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   Scene,
   PerspectiveCamera,
@@ -18,20 +18,21 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { SatelliteService } from '../satellite.service';
 import { BreakpointObserver } from '@angular/cdk/layout';
+import { PageStateService } from '../page-state.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-space',
   templateUrl: './space.component.html',
   styleUrls: ['./space.component.css']
 })
-export class SpaceComponent implements OnInit {
+export class SpaceComponent implements OnInit, OnDestroy {
   private EARTH_RADIUS_KM = 6371;
-
-  @ViewChild('loadingContainer')
-  private loadingContainer: ElementRef | undefined;
 
   @ViewChild('rendererContainer')
   private rendererContainer: ElementRef | undefined;
+
+  private breakpointSubscriber: Subscription | undefined;
 
   private scene = new Scene();
   private camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 200);
@@ -40,9 +41,11 @@ export class SpaceComponent implements OnInit {
 
   private space = new Object3D();
 
-  private earth = new Mesh(new SphereGeometry(this.EARTH_RADIUS_KM, 32, 32));
+  private earthGeometry = new SphereGeometry(this.EARTH_RADIUS_KM, 32, 32);
+  private earth = new Mesh(this.earthGeometry);
 
-  private sky = new Mesh(new SphereGeometry(100, 8, 8));
+  private skyGeometry = new SphereGeometry(100, 8, 8);
+  private sky = new Mesh(this.skyGeometry);
 
   private satVector = new Vector3();
   private satMatrix = new Matrix4();
@@ -57,6 +60,7 @@ export class SpaceComponent implements OnInit {
 
   constructor(
     private satelliteService: SatelliteService.SatelliteService,
+    private pageStateService: PageStateService,
     private breakpointObserver: BreakpointObserver,
   ) {
     Promise.all([
@@ -83,7 +87,6 @@ export class SpaceComponent implements OnInit {
     this.controls.update();
 
     if (timestampMs - this.timingClock >= 1000) {
-      this.satelliteService.setAllSats();
       this.updateSatMesh();
       this.timingClock = timestampMs;
     }
@@ -117,11 +120,26 @@ export class SpaceComponent implements OnInit {
     this.animate(0);
   }
 
+  ngOnDestroy(): void {
+    this.controls.dispose();
+    this.satsGeometry.dispose();
+    this.satGeometry.dispose();
+    this.sats.geometry.dispose();
+    (this.sats.material as Material).dispose();
+    this.skyGeometry.dispose();
+    this.sky.geometry.dispose();
+    (this.sky.material as Material).dispose();
+    this.earthGeometry.dispose();
+    this.earth.geometry.dispose();
+    (this.earth.material as Material).dispose();
+    this.renderer.dispose();
+    this.breakpointSubscriber?.unsubscribe();
+  }
+
   private display(): void {
     if (this.rendererContainer) {
-      this.loadingContainer?.nativeElement.remove();
       this.rendererContainer.nativeElement.appendChild(this.renderer.domElement);
-      this.breakpointObserver.observe([
+      this.breakpointSubscriber = this.breakpointObserver.observe([
         '(orientation: portrait)',
         '(orientation: landscape)',
       ]).subscribe(() => {
@@ -129,6 +147,7 @@ export class SpaceComponent implements OnInit {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
       });
+      this.pageStateService.ready(true);
     }
   }
 

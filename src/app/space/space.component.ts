@@ -8,8 +8,11 @@ import {
   SphereGeometry,
   BufferGeometry,
   MeshBasicMaterial,
+  Texture,
   Material,
   Mesh,
+  Side,
+  FrontSide,
   BackSide,
   Vector3,
   Matrix4,
@@ -29,14 +32,14 @@ import { Subscription } from 'rxjs';
 export class SpaceComponent implements OnInit, OnDestroy {
   private EARTH_RADIUS_KM = 6371;
 
-  @ViewChild('rendererContainer')
-  private rendererContainer: ElementRef | undefined;
+  @ViewChild('rendererCanvas', { static: true })
+  private rendererCanvas: ElementRef | undefined;
 
   private breakpointSubscriber: Subscription | undefined;
 
   private scene = new Scene();
   private camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 200);
-  private renderer = new WebGLRenderer();
+  private renderer: WebGLRenderer | undefined;
   private loader = new TextureLoader();
 
   private space = new Object3D();
@@ -53,7 +56,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
   private satsGeometry = this.satGeometry.clone();
   private sats = new Mesh(this.satsGeometry);
 
-  private controls = new OrbitControls(this.camera, this.renderer.domElement);
+  private controls: OrbitControls | undefined;
 
   private timingFrame = 0;
   private timingClock = 0;
@@ -63,37 +66,47 @@ export class SpaceComponent implements OnInit, OnDestroy {
     private pageStateService: PageStateService,
     private breakpointObserver: BreakpointObserver,
   ) {
+    const updateMaterial = (mesh: Mesh, texture: Texture, side: Side) => {
+      (mesh.material as Material).dispose();
+      (mesh.material as Material) = new MeshBasicMaterial({
+        map: texture,
+        side,
+      });
+    };
     Promise.all([
-      this.loader.loadAsync('../assets/land_ocean_ice_8192.png').then(texture => {
-        (this.earth.material as Material).dispose();
-        (this.earth.material as Material) = new MeshBasicMaterial({
-          map: texture,
-        });
+      this.loader.loadAsync('../assets/land_ocean_ice_2048.jpg').then(texture => {
+        updateMaterial(this.earth, texture, FrontSide);
       }),
-      this.loader.loadAsync('../assets/starmap_2020_4k.png').then(texture => {
-        (this.sky.material as Material).dispose();
-        (this.sky.material as Material) = new MeshBasicMaterial({
-          map: texture,
-          side: BackSide,
-        });
+      this.loader.loadAsync('../assets/starmap_2020_4k_print.jpg').then(texture => {
+        updateMaterial(this.sky, texture, BackSide);
       }),
-    ]).then(() => this.display());
+    ])
+      .then(() => this.display())
+      .then(() => Promise.all([
+        this.loader.loadAsync('../assets/land_ocean_ice_8192.png').then(texture => {
+          updateMaterial(this.earth, texture, FrontSide);
+        }),
+        this.loader.loadAsync('../assets/starmap_2020_4k.png').then(texture => {
+          updateMaterial(this.sky, texture, BackSide);
+        }),
+      ]));
   }
 
   animate(timestampMs: number): void {
     window.requestAnimationFrame((timestamp: number) => this.animate(timestamp));
     this.earth.rotateY(2 * Math.PI / (24 * 3600 * 1000) * (timestampMs - this.timingFrame));
     this.timingFrame = timestampMs;
-    this.controls.update();
+    this.controls?.update();
 
     if (timestampMs - this.timingClock >= 1000) {
       this.updateSatMesh();
       this.timingClock = timestampMs;
     }
-    this.renderer.render(this.scene, this.camera);
+    this.renderer?.render(this.scene, this.camera);
   }
 
   ngOnInit(): void {
+    this.renderer = new WebGLRenderer({ canvas: this.rendererCanvas?.nativeElement });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     this.scene.add(this.space);
@@ -110,18 +123,17 @@ export class SpaceComponent implements OnInit, OnDestroy {
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(0, 0, 0);
 
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.target.set(0, 0, 0);
     this.controls.enableDamping = true;
     this.controls.enablePan = false;
     this.controls.maxDistance = 36;
     this.controls.minDistance = 12;
     this.controls.update();
-
-    this.animate(0);
   }
 
   ngOnDestroy(): void {
-    this.controls.dispose();
+    this.controls?.dispose();
     this.satsGeometry.dispose();
     this.satGeometry.dispose();
     this.sats.geometry.dispose();
@@ -132,23 +144,23 @@ export class SpaceComponent implements OnInit, OnDestroy {
     this.earthGeometry.dispose();
     this.earth.geometry.dispose();
     (this.earth.material as Material).dispose();
-    this.renderer.dispose();
+    this.renderer?.dispose();
     this.breakpointSubscriber?.unsubscribe();
   }
 
   private display(): void {
-    if (this.rendererContainer) {
-      this.rendererContainer.nativeElement.appendChild(this.renderer.domElement);
+    if (!this.breakpointSubscriber) {
       this.breakpointSubscriber = this.breakpointObserver.observe([
         '(orientation: portrait)',
         '(orientation: landscape)',
       ]).subscribe(() => {
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer?.setSize(window.innerWidth, window.innerHeight);
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
       });
-      this.pageStateService.ready(true);
     }
+    this.animate(0);
+    this.pageStateService.ready(true);
   }
 
   private updateSatMesh(): void {
@@ -169,6 +181,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
       this.satsGeometry = BufferGeometryUtils.mergeBufferGeometries(satsArray);
       this.sats.geometry.dispose();
       this.sats.geometry = this.satsGeometry;
+      satsArray.forEach(geometry => geometry.dispose());
     }
   }
 }

@@ -12,7 +12,7 @@ import { filter } from 'rxjs/operators';
 export class AppComponent {
   title = 'Star Trak';
 
-  @ViewChild('loadingContainer')
+  @ViewChild('loadingContainer', { static: true })
   private loadingContainer: ElementRef | undefined;
 
   constructor(

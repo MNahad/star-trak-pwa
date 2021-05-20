@@ -36,6 +36,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
   private rendererCanvas: ElementRef | undefined;
 
   private breakpointSubscriber: Subscription | undefined;
+  private pageStateSubscriber: Subscription | undefined;
 
   private scene = new Scene();
   private camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 200);
@@ -81,7 +82,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
         updateMaterial(this.sky, texture, BackSide);
       }),
     ])
-      .then(() => this.display())
+      .then(() => this.pageStateService.signalReady("page", true))
       .then(() => Promise.all([
         this.loader.loadAsync('../assets/land_ocean_ice_8192.png').then(texture => {
           updateMaterial(this.earth, texture, FrontSide);
@@ -107,7 +108,6 @@ export class SpaceComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.renderer = new WebGLRenderer({ canvas: this.rendererCanvas?.nativeElement });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     this.scene.add(this.space);
 
@@ -130,6 +130,10 @@ export class SpaceComponent implements OnInit, OnDestroy {
     this.controls.maxDistance = 36;
     this.controls.minDistance = 12;
     this.controls.update();
+
+    this.pageStateSubscriber = this.pageStateService.allClear$.subscribe(ready => {
+      ready && this.display();
+    });
   }
 
   ngOnDestroy(): void {
@@ -146,6 +150,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
     (this.earth.material as Material).dispose();
     this.renderer?.dispose();
     this.breakpointSubscriber?.unsubscribe();
+    this.pageStateSubscriber?.unsubscribe();
   }
 
   private display(): void {
@@ -159,8 +164,11 @@ export class SpaceComponent implements OnInit, OnDestroy {
         this.camera.updateProjectionMatrix();
       });
     }
+    if (this.rendererCanvas) {
+      this.rendererCanvas.nativeElement.style.display = "grid";
+    }
+    this.renderer?.setSize(window.innerWidth, window.innerHeight);
     this.animate(0);
-    this.pageStateService.ready(true);
   }
 
   private updateSatMesh(): void {

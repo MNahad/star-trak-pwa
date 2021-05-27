@@ -35,8 +35,9 @@ export class SpaceComponent implements OnInit, OnDestroy {
   @ViewChild('rendererCanvas', { static: true })
   private rendererCanvas: ElementRef | undefined;
 
-  private breakpointSubscriber: Subscription | undefined;
   private pageStateSubscriber: Subscription | undefined;
+  private satelliteServiceSubscriber: Subscription;
+  private breakpointSubscriber: Subscription;
 
   private scene = new Scene();
   private camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 200);
@@ -60,12 +61,11 @@ export class SpaceComponent implements OnInit, OnDestroy {
   private controls: OrbitControls | undefined;
 
   private timingFrame = 0;
-  private timingClock = 0;
 
   constructor(
-    private satelliteService: SatelliteService.SatelliteService,
     private pageStateService: PageStateService,
-    private breakpointObserver: BreakpointObserver,
+    breakpointObserver: BreakpointObserver,
+    satelliteService: SatelliteService.SatelliteService,
   ) {
     const updateMaterial = (mesh: Mesh, texture: Texture, side: Side) => {
       (mesh.material as Material).dispose();
@@ -91,37 +91,27 @@ export class SpaceComponent implements OnInit, OnDestroy {
           updateMaterial(this.sky, texture, BackSide);
         }),
       ]));
-  }
 
-  animate(timestampMs: number): void {
-    window.requestAnimationFrame((timestamp: number) => this.animate(timestamp));
-    this.earth.rotateY(2 * Math.PI / (24 * 3600 * 1000) * (timestampMs - this.timingFrame));
-    this.timingFrame = timestampMs;
-    this.controls?.update();
+    this.satelliteServiceSubscriber = satelliteService.tracker$.subscribe(
+      ({ data: [satellites] }) => {
+        this.updateSatMesh(satellites);
+      },
+    );
+    this.breakpointSubscriber = breakpointObserver.observe([
+      '(orientation: portrait)',
+      '(orientation: landscape)',
+    ]).subscribe(() => {
+      this.renderer?.setSize(window.innerWidth, window.innerHeight);
+      this.camera.aspect = window.innerWidth / window.innerHeight;
+      this.camera.updateProjectionMatrix();
+    });
 
-    if (timestampMs - this.timingClock >= 1000) {
-      this.updateSatMesh();
-      this.timingClock = timestampMs;
-    }
-    this.renderer?.render(this.scene, this.camera);
+    this.createUniverse();
+    this.animate(0);
   }
 
   ngOnInit(): void {
     this.renderer = new WebGLRenderer({ canvas: this.rendererCanvas?.nativeElement });
-
-    this.scene.add(this.space);
-
-    this.earth.scale.set(0.001, 0.001, 0.001);
-    this.space.add(this.earth);
-
-    this.sky.rotateY(Math.PI / 2);
-    this.space.add(this.sky);
-
-    this.earth.add(this.sats);
-
-    this.camera.position.set(36, 0, 0);
-    this.camera.up.set(0, 1, 0);
-    this.camera.lookAt(0, 0, 0);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.target.set(0, 0, 0);
@@ -149,31 +139,44 @@ export class SpaceComponent implements OnInit, OnDestroy {
     this.earth.geometry.dispose();
     (this.earth.material as Material).dispose();
     this.renderer?.dispose();
-    this.breakpointSubscriber?.unsubscribe();
+    this.breakpointSubscriber.unsubscribe();
     this.pageStateSubscriber?.unsubscribe();
+    this.satelliteServiceSubscriber.unsubscribe();
+  }
+
+  private createUniverse(): void {
+    this.scene.add(this.space);
+
+    this.earth.scale.set(0.001, 0.001, 0.001);
+    this.space.add(this.earth);
+
+    this.sky.rotateY(Math.PI / 2);
+    this.space.add(this.sky);
+
+    this.earth.add(this.sats);
+
+    this.camera.position.set(36, 0, 0);
+    this.camera.up.set(0, 1, 0);
+    this.camera.lookAt(0, 0, 0);
   }
 
   private display(): void {
-    if (!this.breakpointSubscriber) {
-      this.breakpointSubscriber = this.breakpointObserver.observe([
-        '(orientation: portrait)',
-        '(orientation: landscape)',
-      ]).subscribe(() => {
-        this.renderer?.setSize(window.innerWidth, window.innerHeight);
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix();
-      });
-    }
     if (this.rendererCanvas) {
       this.rendererCanvas.nativeElement.style.display = "grid";
     }
     this.renderer?.setSize(window.innerWidth, window.innerHeight);
-    this.animate(0);
   }
 
-  private updateSatMesh(): void {
+  private animate(timestampMs: number): void {
+    window.requestAnimationFrame((timestamp: number) => this.animate(timestamp));
+    this.earth.rotateY(2 * Math.PI / (24 * 3600 * 1000) * (timestampMs - this.timingFrame));
+    this.timingFrame = timestampMs;
+    this.controls?.update();
+    this.renderer?.render(this.scene, this.camera);
+  }
+
+  private updateSatMesh(satellites: SatelliteService.SatelliteGeodetic[]): void {
     this.satsGeometry.dispose();
-    const satellites = this.satelliteService.getAllSats();
     const satsArray: BufferGeometry[] = [];
     satellites.forEach(satellite => {
       this.satMatrix.setPosition(this.satVector.setFromSphericalCoords(

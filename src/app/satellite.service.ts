@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { fromEvent, Observable } from 'rxjs';
+import { fromEvent } from 'rxjs';
 
 export namespace SatelliteService {
 
@@ -7,44 +7,19 @@ export namespace SatelliteService {
     providedIn: 'root'
   })
   export class SatelliteService {
-    private tracker: Worker | undefined;
-    private tracker$: Observable<MessageEvent<EventData>> | undefined;
-    private satellites: SatelliteGeodetic[] = [];
-    private localisedSatellites: SatelliteHorizontal[] = [];
-
-    constructor() {
-      if (typeof Worker !== 'undefined') {
-        this.prepWorker();
-      }
-    }
-
-    getAllSats(): SatelliteGeodetic[] {
-      return this.satellites;
-    }
-
-    getRangedSats(): SatelliteHorizontal[] {
-      return this.localisedSatellites;
-    }
+    private tracker = new Worker('./satellite.service.worker', { type: 'module' });
+    tracker$ = fromEvent<MessageEvent<EventData>>(this.tracker, 'message');
 
     startTracker({ observer: { lat_deg, lon_deg, alt_km }, duration }: TrackerConfig): void {
       fetch("../assets/wasm/data.json")
         .then(res => res.json())
         .then(gpElements => {
-          this.tracker?.postMessage({
+          this.tracker.postMessage({
             gpElements,
             coords: [lat_deg, lon_deg, alt_km],
             duration,
           });
         });
-    }
-
-    private prepWorker(): void {
-      this.tracker = new Worker('./satellite.service.worker', { type: 'module' });
-      this.tracker$ = fromEvent<MessageEvent<EventData>>(this.tracker, 'message');
-      this.tracker$.subscribe(({ data }) => {
-        this.satellites = data[0];
-        this.localisedSatellites = data[1];
-      });
     }
   }
 

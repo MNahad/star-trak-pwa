@@ -11,33 +11,33 @@ export class PageStateService {
     main: false,
     page: false,
   };
-  private pageReady = new Subject<{ from: "main" | "page"; state: boolean }>();
-  private allClear = new Subject<boolean>();
-  public pageReady$ = this.pageReady.asObservable();
-  public allClear$ = this.allClear.asObservable();
+  private go = new Subject<boolean>();
+  public go$ = this.go.asObservable();
 
   constructor(router: Router) {
-    this.pageReady$.subscribe(({ from, state }) => {
-      this.pageState[from] = state;
-      if (Object.values(this.pageState).every(Boolean)) {
-        this.allClear.next(true);
-      } else {
-        this.allClear.next(false);
-      }
-    });
     router.events.pipe(
       filter(event => event instanceof NavigationStart),
     ).subscribe(() => {
-      this.allClear.next(false);
+      this.go.next(false);
     });
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => {
-      this.allClear.next(true);
+      this.go.next(true);
     });
   }
 
-  signalReady(from: "main" | "page", state: boolean): void {
-    this.pageReady.next({ from, state });
+  signalReady({ from, state }: ReadySignal): void {
+    this.pageState[from] = state;
+    if (Object.values(this.pageState).every(Boolean)) {
+      this.go.next(true);
+    } else {
+      this.go.next(false);
+    }
   }
+}
+
+interface ReadySignal {
+  from: "main" | "page";
+  state: boolean;
 }

@@ -1,6 +1,8 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { PageStateService } from './page-state.service';
 import { SatelliteService } from './satellite.service';
+import { SensorService } from './sensor.service';
+import { PageStateService } from './page-state.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -9,6 +11,7 @@ import { SatelliteService } from './satellite.service';
 })
 export class AppComponent implements OnInit {
   title = 'Star Trak';
+  isObserverDisabled = true;
 
   @ViewChild('loadingContainer', { static: true })
   private loadingContainer: ElementRef | undefined;
@@ -16,27 +19,41 @@ export class AppComponent implements OnInit {
   private loadingImage = new Image();
 
   constructor(
-    private satelliteService: SatelliteService.SatelliteService,
-    private pageStateService: PageStateService,
+    satelliteService: SatelliteService,
+    sensorService: SensorService,
+    pageStateService: PageStateService,
   ) {
-    this.satelliteService.startTracker({
+    satelliteService.startTracker({
       observer: { lat_deg: 0, lon_deg: 0, alt_km: 0 },
-      duration: 1000,
+      period: 1000,
+    });
+
+    const geoSensor$ = sensorService.getSensor$("geo");
+    geoSensor$.pipe(
+      filter(SensorService.isReading),
+    ).subscribe(({ reading: [lat_deg, lon_deg, alt_km] }) => {
+      satelliteService.updateObserver({ lat_deg, lon_deg, alt_km });
+    });
+    geoSensor$.pipe(
+      filter(SensorService.isState),
+    ).subscribe(({ state }) => {
+      this.isObserverDisabled = !state;
+    });
+
+    pageStateService.go$.subscribe(ready => {
+      this.reveal(ready);
+    });
+    this.loadingImage.onload = (() => {
+      pageStateService.signalReady({ from: "main", state: true });
     });
   }
 
   ngOnInit(): void {
-    this.loadingImage.onload = (() => {
-      this.pageStateService.signalReady("main", true);
-    });
     this.loadingImage.src = "../assets/ISS062-E-148365.JPG";
     if (this.loadingContainer) {
       this.loadingContainer.nativeElement.style.backgroundImage =
         `url("${this.loadingImage.src}")`;
     }
-    this.pageStateService.allClear$.subscribe(ready => {
-      this.reveal(ready);
-    });
   }
 
   private reveal(go: boolean): void {

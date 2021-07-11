@@ -19,7 +19,7 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
-import { SatelliteService } from '../satellite.service';
+import { SatelliteService, SatelliteGeodetic } from '../satellite.service';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { PageStateService } from '../page-state.service';
 import { Subscription } from 'rxjs';
@@ -65,7 +65,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
   constructor(
     private pageStateService: PageStateService,
     breakpointObserver: BreakpointObserver,
-    satelliteService: SatelliteService.SatelliteService,
+    satelliteService: SatelliteService,
   ) {
     const updateMaterial = (mesh: Mesh, texture: Texture, side: Side) => {
       (mesh.material as Material).dispose();
@@ -82,7 +82,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
         updateMaterial(this.sky, texture, BackSide);
       }),
     ])
-      .then(() => this.pageStateService.signalReady("page", true))
+      .then(() => this.pageStateService.signalReady({ from: "page", state: true }))
       .then(() => Promise.all([
         this.loader.loadAsync('../assets/land_ocean_ice_8192.png').then(texture => {
           updateMaterial(this.earth, texture, FrontSide);
@@ -121,7 +121,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
     this.controls.minDistance = 12;
     this.controls.update();
 
-    this.pageStateSubscriber = this.pageStateService.allClear$.subscribe(ready => {
+    this.pageStateSubscriber = this.pageStateService.go$.subscribe(ready => {
       ready && this.display();
     });
   }
@@ -175,7 +175,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
     this.renderer?.render(this.scene, this.camera);
   }
 
-  private updateSatMesh(satellites: SatelliteService.SatelliteGeodetic[]): void {
+  private updateSatMesh(satellites: SatelliteGeodetic[]): void {
     this.satsGeometry.dispose();
     const satsArray: BufferGeometry[] = [];
     satellites.forEach(satellite => {

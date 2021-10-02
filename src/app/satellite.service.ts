@@ -39,7 +39,7 @@ export interface SatelliteHorizontal {
   range_km: number;
 }
 
-type SatelliteData = [SatelliteGeodetic[], SatelliteHorizontal[]];
+type SatelliteData = [SatelliteGeodetic[], [SatelliteHorizontal, string][]];
 
 interface TrackerConfig {
   observer: {

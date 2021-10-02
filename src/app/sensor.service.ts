@@ -6,6 +6,7 @@ import { Subject, Observable } from 'rxjs';
 })
 export class SensorService {
   private sensors: Sensors;
+  private capability: Capability;
 
   static isReading<T>(data: SensorData<T>): data is { reading: T } {
     return 'reading' in data;
@@ -15,6 +16,12 @@ export class SensorService {
   }
 
   constructor() {
+    const performance: Capability["performance"] = new Subject();
+    this.capability = {
+      performance,
+      performance$: performance.asObservable(),
+    };
+
     const defineSensor = <_, U>(): Sensor<_, U> => {
       const data = new Subject<SensorData<U>>();
       return {
@@ -26,8 +33,10 @@ export class SensorService {
     };
     this.sensors = {
       nineAxis: defineSensor(),
+      sixAxis: defineSensor(),
       geo: defineSensor(),
     };
+
     this.init();
   }
 
@@ -35,15 +44,20 @@ export class SensorService {
     return this.sensors[sensor].observable$;
   }
 
+  getCapability$(): Capability["performance$"] {
+    return this.capability.performance$;
+  }
+
+  requestSensorActivation(sensor: keyof Sensors): void {
+    this.discover(sensor);
+    if (this.sensors[sensor].state) {
+      this.start(sensor);
+    }
+  }
+
   private init(): void {
-    this.discover("nineAxis");
-    this.discover("geo");
-    if (this.sensors.nineAxis.state) {
-      this.start("nineAxis");
-    }
-    if (this.sensors.geo.state) {
-      this.start("geo");
-    }
+    this.requestSensorActivation("nineAxis");
+    setInterval(() => this.reportPerformance(), 1000);
   }
 
   private discover(sensor: keyof Sensors): void {
@@ -62,6 +76,22 @@ export class SensorService {
           }
         } else {
           nineAxis.state = false;
+        }
+        break;
+      case "sixAxis":
+        const sixAxis = this.sensors.sixAxis;
+        if ('RelativeOrientationSensor' in window) {
+          try {
+            sixAxis.device = new RelativeOrientationSensor({
+              frequency: 50,
+              referenceFrame: 'screen',
+            });
+            sixAxis.state = true;
+          } catch {
+            sixAxis.state = false;
+          }
+        } else {
+          sixAxis.state = false;
         }
         break;
       case "geo":
@@ -84,9 +114,7 @@ export class SensorService {
           break;
         }
         nineAxis.device.onreading = () => {
-          nineAxis.state = true;
-          nineAxis.data.next({ state: true });
-          nineAxis.data.next({ reading: nineAxis.device!.quaternion! });
+          this.updateSensor("nineAxis", true, nineAxis.device!.quaternion!);
         };
         nineAxis.device.onerror = ({ error: { name } }) => {
           switch (name) {
@@ -94,11 +122,31 @@ export class SensorService {
             case 'NotReadableError':
             case 'SecurityError':
             default:
-              nineAxis.state = false;
-              nineAxis.data.next({ state: false });
+              this.updateSensor("nineAxis", false);
+              break;
           }
         };
         nineAxis.device.start();
+        break;
+      case "sixAxis":
+        const sixAxis = this.sensors.sixAxis;
+        if (!sixAxis.device) {
+          break;
+        }
+        sixAxis.device.onreading = () => {
+          this.updateSensor("nineAxis", true, sixAxis.device!.quaternion!);
+        };
+        sixAxis.device.onerror = ({ error: { name } }) => {
+          switch (name) {
+            case 'NotAllowedError':
+            case 'NotReadableError':
+            case 'SecurityError':
+            default:
+              this.updateSensor("sixAxis", false);
+              break;
+          }
+        };
+        sixAxis.device.start();
         break;
       case "geo":
         const geo = this.sensors.geo;
@@ -107,9 +155,7 @@ export class SensorService {
         }
         geo.device.watchPosition(
           ({ coords: { latitude, longitude, altitude } }) => {
-            geo.state = true;
-            geo.data.next({ state: true });
-            geo.data.next({ reading: [latitude, longitude, altitude ?? 0] });
+            this.updateSensor("geo", true, [latitude, longitude, altitude ?? 0]);
           },
           ({ code, PERMISSION_DENIED, POSITION_UNAVAILABLE, TIMEOUT }) => {
             switch (code) {
@@ -117,8 +163,7 @@ export class SensorService {
               case POSITION_UNAVAILABLE:
               case TIMEOUT:
               default:
-                geo.state = false;
-                geo.data.next({ state: false });
+                this.updateSensor("geo", false);
                 break;
             }
           },
@@ -126,9 +171,36 @@ export class SensorService {
         break;
     }
   }
+
+  private updateSensor(name: keyof Sensors, state: boolean, reading?: number[]): void {
+    const sensor = this.sensors[name];
+    sensor.state = state;
+    sensor.data.next({ state });
+    reading?.length && sensor.data.next({ reading });
+    this.reportPerformance();
+  }
+
+  private reportPerformance(): void {
+    if (this.sensors.nineAxis.state && this.sensors.geo.state) {
+      this.capability.performance.next("FULL");
+      return;
+    }
+    if (Object.values(this.sensors).every(({ state }) => !state)) {
+      this.capability.performance.next("OFF");
+      return;
+    }
+    if (!this.sensors.geo.state) {
+      this.capability.performance.next("NO_POSITION");
+    }
+    if (!this.sensors.nineAxis.state && this.sensors.sixAxis.state) {
+      this.capability.performance.next("NO_HEADING");
+    } else if (!(this.sensors.nineAxis.state || this.sensors.sixAxis.state)) {
+      this.capability.performance.next("NO_ORIENTATION");
+    }
+  }
 }
 
-export type SensorData<T> = { state: boolean } | { reading: T };
+type SensorData<T> = { state: boolean } | { reading: T };
 
 interface Sensor<T, U> {
   state: boolean;
@@ -139,5 +211,19 @@ interface Sensor<T, U> {
 
 interface Sensors {
   nineAxis: Sensor<AbsoluteOrientationSensor, number[]>;
+  sixAxis: Sensor<RelativeOrientationSensor, number[]>;
   geo: Sensor<Geolocation, number[]>;
+}
+
+enum Mode {
+  FULL,
+  NO_HEADING,
+  NO_POSITION,
+  NO_ORIENTATION,
+  OFF,
+}
+
+interface Capability {
+  performance: Subject<keyof typeof Mode>;
+  performance$: Observable<keyof typeof Mode>;
 }

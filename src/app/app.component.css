@@ -44,7 +44,3 @@
   grid-column: 0;
   margin: auto;
 }
-
-a[disabled] {
-  pointer-events: none;
-}

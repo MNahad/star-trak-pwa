@@ -33,7 +33,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
   private EARTH_RADIUS_KM = 6371;
 
   @ViewChild('rendererCanvas', { static: true })
-  private rendererCanvas: ElementRef | undefined;
+  private rendererCanvas: ElementRef<HTMLCanvasElement> | undefined;
 
   private pageStateSubscriber: Subscription | undefined;
   private satelliteServiceSubscriber: Subscription;
@@ -176,7 +176,6 @@ export class SpaceComponent implements OnInit, OnDestroy {
   }
 
   private updateSatMesh(satellites: SatelliteGeodetic[]): void {
-    this.satsGeometry.dispose();
     const satsArray: BufferGeometry[] = [];
     satellites.forEach(satellite => {
       this.satMatrix.setPosition(this.satVector.setFromSphericalCoords(
@@ -189,6 +188,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
       satsArray.push(geometry);
     });
     if (satsArray.length) {
+      this.satsGeometry.dispose();
       this.satsGeometry = BufferGeometryUtils.mergeBufferGeometries(satsArray);
       this.sats.geometry.dispose();
       this.sats.geometry = this.satsGeometry;

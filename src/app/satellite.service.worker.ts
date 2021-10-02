@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { Service } from "../assets/wasm/star_trak";
+import type { Service } from "../assets/wasm/star_trak";
 
 let service: Service | undefined;
 

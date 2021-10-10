@@ -37,6 +37,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Add("Access-Control-Allow-Methods", "GET,OPTIONS")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Write(data)
 }
 

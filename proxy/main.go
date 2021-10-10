@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,6 +20,9 @@ func getData() ([]byte, error) {
 	}
 	if res.Body != nil {
 		defer res.Body.Close()
+	}
+	if res.StatusCode > 299 {
+		return make([]byte, 0), errors.New("Error getting data")
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {

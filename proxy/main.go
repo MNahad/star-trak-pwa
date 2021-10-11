@@ -32,13 +32,17 @@ func getData() ([]byte, error) {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Methods", "GET,OPTIONS")
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
 	data, err := getData()
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Add("Access-Control-Allow-Methods", "GET,OPTIONS")
-	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Write(data)
 }
 

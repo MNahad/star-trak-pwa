@@ -94,7 +94,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
 
     this.satelliteServiceSubscriber = satelliteService.tracker$.subscribe(
       ({ data: [satellites] }) => {
-        this.updateSatMesh(satellites);
+        this.updateSatMesh(satellites.map(([satellite]) => satellite));
       },
     );
     this.breakpointSubscriber = breakpointObserver.observe([

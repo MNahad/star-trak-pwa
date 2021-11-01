@@ -32,8 +32,13 @@ func getData() ([]byte, error) {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Access-Control-Allow-Methods", "GET,OPTIONS")
+	header := w.Header()
+	header.Add("Access-Control-Allow-Origin", "*")
+	header.Add("Access-Control-Allow-Methods", "GET,OPTIONS")
+	if len(r.Header.Get("Access-Control-Request-Headers")) > 0 {
+		header.Add("Access-Control-Allow-Headers", r.Header.Get("Access-Control-Request-Headers"))
+	}
+	header.Add("Access-Control-Max-Age", "86400")
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusNoContent)
 		return

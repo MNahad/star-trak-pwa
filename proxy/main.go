@@ -22,7 +22,7 @@ func getData() ([]byte, error) {
 		defer res.Body.Close()
 	}
 	if res.StatusCode > 299 {
-		return make([]byte, 0), errors.New("Error getting data")
+		return make([]byte, 0), errors.New("error getting data")
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -33,6 +33,7 @@ func getData() ([]byte, error) {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	header := w.Header()
+	header.Add("Allow", "GET,OPTIONS")
 	header.Add("Access-Control-Allow-Origin", "*")
 	header.Add("Access-Control-Allow-Methods", "GET,OPTIONS")
 	if len(r.Header.Get("Access-Control-Request-Headers")) > 0 {
@@ -43,11 +44,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	data, err := getData()
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	if r.Method != "GET" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
+	data, err := getData()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	header.Add("Content-Type", "application/json; charset=UTF-8")
 	w.Write(data)
 }
 

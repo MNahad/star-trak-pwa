@@ -6,13 +6,22 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 10;
+  z-index: 5;
+  background-color: transparent;
+}
+
+#hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 6;
   background-color: transparent;
 }
 
 #disabledText {
-  padding-top: 10%;
+  margin-top: 20%;
   color: red;
   font-family: inherit;
   font-size: large;
+  text-align: center;
 }

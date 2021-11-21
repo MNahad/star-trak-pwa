@@ -1,22 +1,30 @@
 <mat-sidenav-container id="sidenav-container">
   <mat-sidenav id="sidenav" #sidenav role="navigation">
     <nav>
-      <a mat-raised-button color="accent" routerLink="/space">Space Mode</a>
-      <a mat-raised-button color="accent" routerLink="/observer">Observer Mode</a>
+      <a mat-raised-button *ngIf="!isLoading" color="accent" routerLink="/space">Space Mode</a>
+      <a mat-raised-button *ngIf="!isLoading" color="accent" routerLink="/observer">Observer Mode</a>
     </nav>
     <a mat-raised-button color="primary" href="https://github.com/MNahad">POWERED BY @MNAHAD</a>
   </mat-sidenav>
   <mat-sidenav-content id="content">
-    <button id="sidenav-button" mat-icon-button color="accent" (click)="sidenav.toggle()">
+    <button mat-icon-button id="sidenav-button" color="accent" (click)="sidenav.toggle()">
       <mat-icon>menu</mat-icon>
     </button>
     <div #loadingContainer id="loadingContainer">
-      <pre id="loadingText">
-        STAR TRAK
-    
-        Track Starlink Satellites in real time
+      <div class="loadingText">STAR TRAK</div>
+      <div class="loadingText">Track Starlink satellites in real time</div>
+      <mat-spinner id="spinner" *ngIf="isLoading"></mat-spinner>
+      <button mat-raised-button id="button" color="primary" *ngIf="!isLoading" (click)="onUserAccept()">GO</button>
+      <pre id="footer">
+        For educational purposes only
+        STARLINK is a trademark of Space Exploration Technologies Corp.
+        This application is not affiliated with STARLINK.
+
+        Image attributions:
+        Earth Observing System Project Science Office, NASA Goddard Space Flight Center
+        Scientific Visualization Studio, NASA Goddard Space Flight Center
+        Earth Science and Remote Sensing Unit, NASA Johnson Space Center
       </pre>
-      <mat-spinner id="spinner"></mat-spinner>
     </div>
     <router-outlet id="router-outlet">
     </router-outlet>

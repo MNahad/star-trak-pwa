@@ -30,9 +30,8 @@
   background-attachment: fixed;
 }
 
-#loadingText {
-  grid-row: 1;
-  grid-column: 0;
+.loadingText {
+  display: flex;
   margin: auto;
   color: greenyellow;
   font-family: inherit;
@@ -40,7 +39,21 @@
 }
 
 #spinner {
-  grid-row: 0;
-  grid-column: 0;
+  display: flex;
   margin: auto;
+}
+
+#button {
+  display: flex;
+  margin: auto;
+}
+
+#footer {
+  display: flex;
+  color: white;
+  font-family: inherit;
+  font-size: xx-small;
+  text-align: center;
+  margin: auto;
+  margin-bottom: 0%;
 }

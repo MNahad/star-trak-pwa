@@ -12,12 +12,12 @@ export class AppComponent implements OnInit {
 
   @ViewChild('loadingContainer', { static: true })
   private loadingContainer: ElementRef<HTMLDivElement> | undefined;
-
   private loadingImage = new Image();
+  isLoading = true;
 
   constructor(
+    private pageStateService: PageStateService,
     satelliteService: SatelliteService,
-    pageStateService: PageStateService,
   ) {
     satelliteService.startTracker({
       observer: { lat_deg: 0, lon_deg: 0, alt_km: 0 },
@@ -27,7 +27,7 @@ export class AppComponent implements OnInit {
       this.reveal(ready);
     });
     this.loadingImage.onload = (() => {
-      pageStateService.signalReady({ from: "main", state: true });
+      this.isLoading = false;
     });
   }
 
@@ -37,6 +37,10 @@ export class AppComponent implements OnInit {
       this.loadingContainer.nativeElement.style.backgroundImage =
         `url("${this.loadingImage.src}")`;
     }
+  }
+
+  onUserAccept(): void {
+    this.pageStateService.signalReady({ from: "main", state: true });
   }
 
   private reveal(go: boolean): void {

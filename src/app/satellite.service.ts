@@ -25,13 +25,19 @@ export class SatelliteService {
           period,
         });
       })
-      .catch(() => {});
+      .catch(() => {
+        console.error("Cannot start satellite tracker!");
+      });
   }
 
   updateObserver({ lat_deg, lon_deg, alt_km }: TrackerConfig["observer"]): void {
     this.tracker.postMessage({
       coords: [lat_deg, lon_deg, alt_km],
     });
+  }
+
+  updatePeriod(period: TrackerConfig["period"]): void {
+    this.tracker.postMessage({ period });
   }
 }
 
@@ -47,7 +53,18 @@ export interface SatelliteHorizontal {
   range_km: number;
 }
 
-type SatelliteData = [[SatelliteGeodetic, string][], [SatelliteHorizontal, string][]];
+export interface SatelliteTopocentric {
+  east_km_s: number;
+  north_km_s: number;
+  up_km_s: number;
+}
+
+type SatelliteData = [
+  SatelliteGeodetic[],
+  SatelliteHorizontal[],
+  SatelliteTopocentric[],
+  string[],
+];
 
 interface TrackerConfig {
   observer: {

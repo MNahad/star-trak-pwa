@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  gpUrl: "http://localhost:5000/gp"
+  gpUrl: 'http://localhost:5000/gp',
 };
 
 /*

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SensorService {
   private sensors: Sensors;
@@ -16,7 +16,7 @@ export class SensorService {
   }
 
   constructor() {
-    const performance: Capability["performance"] = new Subject();
+    const performance: Capability['performance'] = new Subject();
     this.capability = {
       performance,
       performance$: performance.asObservable(),
@@ -40,11 +40,13 @@ export class SensorService {
     this.init();
   }
 
-  getSensor$<K extends keyof Sensors>(sensor: keyof Sensors): Sensors[K]["observable$"] {
+  getSensor$<K extends keyof Sensors>(
+    sensor: keyof Sensors
+  ): Sensors[K]['observable$'] {
     return this.sensors[sensor].observable$;
   }
 
-  getCapability$(): Capability["performance$"] {
+  getCapability$(): Capability['performance$'] {
     return this.capability.performance$;
   }
 
@@ -56,13 +58,13 @@ export class SensorService {
   }
 
   private init(): void {
-    this.requestSensorActivation("nineAxis");
+    this.requestSensorActivation('nineAxis');
     setInterval(() => this.reportPerformance(), 1000);
   }
 
   private discover(sensor: keyof Sensors): void {
     switch (sensor) {
-      case "nineAxis":
+      case 'nineAxis':
         const nineAxis = this.sensors.nineAxis;
         if ('AbsoluteOrientationSensor' in window) {
           try {
@@ -78,7 +80,7 @@ export class SensorService {
           nineAxis.state = false;
         }
         break;
-      case "sixAxis":
+      case 'sixAxis':
         const sixAxis = this.sensors.sixAxis;
         if ('RelativeOrientationSensor' in window) {
           try {
@@ -94,7 +96,7 @@ export class SensorService {
           sixAxis.state = false;
         }
         break;
-      case "geo":
+      case 'geo':
         const geo = this.sensors.geo;
         if (navigator.geolocation) {
           geo.device = navigator.geolocation;
@@ -108,13 +110,13 @@ export class SensorService {
 
   private start(sensor: keyof Sensors): void {
     switch (sensor) {
-      case "nineAxis":
+      case 'nineAxis':
         const nineAxis = this.sensors.nineAxis;
         if (!nineAxis.device) {
           break;
         }
         nineAxis.device.onreading = () => {
-          this.updateSensor("nineAxis", true, nineAxis.device!.quaternion!);
+          this.updateSensor('nineAxis', true, nineAxis.device!.quaternion!);
         };
         nineAxis.device.onerror = ({ error: { name } }) => {
           switch (name) {
@@ -122,19 +124,19 @@ export class SensorService {
             case 'NotReadableError':
             case 'SecurityError':
             default:
-              this.updateSensor("nineAxis", false);
+              this.updateSensor('nineAxis', false);
               break;
           }
         };
         nineAxis.device.start();
         break;
-      case "sixAxis":
+      case 'sixAxis':
         const sixAxis = this.sensors.sixAxis;
         if (!sixAxis.device) {
           break;
         }
         sixAxis.device.onreading = () => {
-          this.updateSensor("nineAxis", true, sixAxis.device!.quaternion!);
+          this.updateSensor('nineAxis', true, sixAxis.device!.quaternion!);
         };
         sixAxis.device.onerror = ({ error: { name } }) => {
           switch (name) {
@@ -142,20 +144,24 @@ export class SensorService {
             case 'NotReadableError':
             case 'SecurityError':
             default:
-              this.updateSensor("sixAxis", false);
+              this.updateSensor('sixAxis', false);
               break;
           }
         };
         sixAxis.device.start();
         break;
-      case "geo":
+      case 'geo':
         const geo = this.sensors.geo;
         if (!geo.device) {
           break;
         }
         geo.device.watchPosition(
           ({ coords: { latitude, longitude, altitude } }) => {
-            this.updateSensor("geo", true, [latitude, longitude, altitude ?? 0]);
+            this.updateSensor('geo', true, [
+              latitude,
+              longitude,
+              altitude ?? 0,
+            ]);
           },
           ({ code, PERMISSION_DENIED, POSITION_UNAVAILABLE, TIMEOUT }) => {
             switch (code) {
@@ -163,16 +169,20 @@ export class SensorService {
               case POSITION_UNAVAILABLE:
               case TIMEOUT:
               default:
-                this.updateSensor("geo", false);
+                this.updateSensor('geo', false);
                 break;
             }
-          },
+          }
         );
         break;
     }
   }
 
-  private updateSensor(name: keyof Sensors, state: boolean, reading?: number[]): void {
+  private updateSensor(
+    name: keyof Sensors,
+    state: boolean,
+    reading?: number[]
+  ): void {
     const sensor = this.sensors[name];
     sensor.state = state;
     sensor.data.next({ state });
@@ -182,20 +192,20 @@ export class SensorService {
 
   private reportPerformance(): void {
     if (this.sensors.nineAxis.state && this.sensors.geo.state) {
-      this.capability.performance.next("FULL");
+      this.capability.performance.next('FULL');
       return;
     }
     if (Object.values(this.sensors).every(({ state }) => !state)) {
-      this.capability.performance.next("OFF");
+      this.capability.performance.next('OFF');
       return;
     }
     if (!this.sensors.geo.state) {
-      this.capability.performance.next("NO_POSITION");
+      this.capability.performance.next('NO_POSITION');
     }
     if (!this.sensors.nineAxis.state && this.sensors.sixAxis.state) {
-      this.capability.performance.next("NO_HEADING");
+      this.capability.performance.next('NO_HEADING');
     } else if (!(this.sensors.nineAxis.state || this.sensors.sixAxis.state)) {
-      this.capability.performance.next("NO_ORIENTATION");
+      this.capability.performance.next('NO_ORIENTATION');
     }
   }
 }

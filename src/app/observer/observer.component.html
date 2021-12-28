@@ -1,5 +1,10 @@
 <div id="container">
-  <video #videoElement [hidden]="!observerEnabled" autoplay="" playsinline=""></video>
+  <video
+    #videoElement
+    [hidden]="!observerEnabled"
+    autoplay=""
+    playsinline=""
+  ></video>
   <canvas #observerCanvas id="canvas" [hidden]="!observerEnabled"></canvas>
   <canvas #hudCanvas id="hud" [hidden]="!observerEnabled"></canvas>
   <pre id="disabledText" [hidden]="observerEnabled">

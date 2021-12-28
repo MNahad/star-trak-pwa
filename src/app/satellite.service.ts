@@ -3,22 +3,27 @@ import { fromEvent } from 'rxjs';
 import { environment } from '../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SatelliteService {
-  private tracker = new Worker('./satellite.service.worker', { type: 'module' });
+  private tracker = new Worker('./satellite.service.worker', {
+    type: 'module',
+  });
   tracker$ = fromEvent<MessageEvent<SatelliteData>>(this.tracker, 'message');
 
-  startTracker({ observer: { lat_deg, lon_deg, alt_km }, period }: TrackerConfig): void {
+  startTracker({
+    observer: { lat_deg, lon_deg, alt_km },
+    period,
+  }: TrackerConfig): void {
     fetch(environment.gpUrl)
-      .then(res => {
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
           return Promise.reject();
         }
       })
-      .then(gpElements => {
+      .then((gpElements) => {
         this.tracker.postMessage({
           gpElements,
           coords: [lat_deg, lon_deg, alt_km],
@@ -26,17 +31,21 @@ export class SatelliteService {
         });
       })
       .catch(() => {
-        console.error("Cannot start satellite tracker!");
+        console.error('Cannot start satellite tracker!');
       });
   }
 
-  updateObserver({ lat_deg, lon_deg, alt_km }: TrackerConfig["observer"]): void {
+  updateObserver({
+    lat_deg,
+    lon_deg,
+    alt_km,
+  }: TrackerConfig['observer']): void {
     this.tracker.postMessage({
       coords: [lat_deg, lon_deg, alt_km],
     });
   }
 
-  updatePeriod(period: TrackerConfig["period"]): void {
+  updatePeriod(period: TrackerConfig['period']): void {
     this.tracker.postMessage({ period });
   }
 }
@@ -63,7 +72,7 @@ type SatelliteData = [
   SatelliteGeodetic[],
   SatelliteHorizontal[],
   SatelliteTopocentric[],
-  string[],
+  string[]
 ];
 
 interface TrackerConfig {

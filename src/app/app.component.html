@@ -1,20 +1,43 @@
 <mat-sidenav-container id="sidenav-container">
   <mat-sidenav id="sidenav" #sidenav role="navigation">
     <nav>
-      <a mat-raised-button *ngIf="!isLoading" color="accent" routerLink="/space">Space Mode</a>
-      <a mat-raised-button *ngIf="!isLoading" color="accent" routerLink="/observer">Observer Mode</a>
+      <a mat-raised-button *ngIf="!isLoading" color="accent" routerLink="/space"
+        >Space Mode</a
+      >
+      <a
+        mat-raised-button
+        *ngIf="!isLoading"
+        color="accent"
+        routerLink="/observer"
+        >Observer Mode</a
+      >
     </nav>
-    <a mat-raised-button color="primary" href="https://github.com/MNahad">POWERED BY @MNAHAD</a>
+    <a mat-raised-button color="primary" href="https://github.com/MNahad"
+      >POWERED BY @MNAHAD</a
+    >
   </mat-sidenav>
   <mat-sidenav-content id="content">
-    <button mat-icon-button id="sidenav-button" color="accent" (click)="sidenav.toggle()">
+    <button
+      mat-icon-button
+      id="sidenav-button"
+      color="accent"
+      (click)="sidenav.toggle()"
+    >
       <mat-icon>menu</mat-icon>
     </button>
     <div #loadingContainer id="loadingContainer">
       <div class="loadingText">STAR TRAK</div>
       <div class="loadingText">Track Starlink satellites in real time</div>
       <mat-spinner id="spinner" *ngIf="isLoading"></mat-spinner>
-      <button mat-raised-button id="button" color="primary" *ngIf="!isLoading" (click)="onUserAccept()">GO</button>
+      <button
+        mat-raised-button
+        id="button"
+        color="primary"
+        *ngIf="!isLoading"
+        (click)="onUserAccept()"
+      >
+        GO
+      </button>
       <pre id="footer">
         For educational purposes only
         STARLINK is a trademark of Space Exploration Technologies Corp.
@@ -26,7 +49,6 @@
         Earth Science and Remote Sensing Unit, NASA Johnson Space Center
       </pre>
     </div>
-    <router-outlet id="router-outlet">
-    </router-outlet>
+    <router-outlet id="router-outlet"></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

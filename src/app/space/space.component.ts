@@ -1,4 +1,10 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import {
   Scene,
   PerspectiveCamera,
@@ -27,7 +33,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-space',
   templateUrl: './space.component.html',
-  styleUrls: ['./space.component.css']
+  styleUrls: ['./space.component.css'],
 })
 export class SpaceComponent implements OnInit, OnDestroy {
   private EARTH_RADIUS_KM = 6371;
@@ -40,7 +46,12 @@ export class SpaceComponent implements OnInit, OnDestroy {
   private breakpointSubscriber: Subscription;
 
   private scene = new Scene();
-  private camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 200);
+  private camera = new PerspectiveCamera(
+    45,
+    window.innerWidth / window.innerHeight,
+    1,
+    200
+  );
   private renderer: WebGLRenderer | undefined;
   private loader = new TextureLoader();
 
@@ -65,7 +76,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
   constructor(
     private pageStateService: PageStateService,
     breakpointObserver: BreakpointObserver,
-    satelliteService: SatelliteService,
+    satelliteService: SatelliteService
   ) {
     const updateMaterial = (mesh: Mesh, texture: Texture, side: Side) => {
       (mesh.material as Material).dispose();
@@ -75,44 +86,57 @@ export class SpaceComponent implements OnInit, OnDestroy {
       });
     };
     Promise.all([
-      this.loader.loadAsync('../assets/land_ocean_ice_2048.jpg').then(texture => {
-        updateMaterial(this.earth, texture, FrontSide);
-      }),
-      this.loader.loadAsync('../assets/starmap_2020_4k_print.jpg').then(texture => {
-        updateMaterial(this.sky, texture, BackSide);
-      }),
-    ])
-      .then(() => this.pageStateService.signalReady({ from: "page", state: true }))
-      .then(() => Promise.all([
-        this.loader.loadAsync('../assets/land_ocean_ice_8192.png').then(texture => {
+      this.loader
+        .loadAsync('../assets/land_ocean_ice_2048.jpg')
+        .then((texture) => {
           updateMaterial(this.earth, texture, FrontSide);
         }),
-        this.loader.loadAsync('../assets/starmap_2020_4k.png').then(texture => {
+      this.loader
+        .loadAsync('../assets/starmap_2020_4k_print.jpg')
+        .then((texture) => {
           updateMaterial(this.sky, texture, BackSide);
         }),
-      ]));
+    ])
+      .then(() =>
+        this.pageStateService.signalReady({ from: 'page', state: true })
+      )
+      .then(() =>
+        Promise.all([
+          this.loader
+            .loadAsync('../assets/land_ocean_ice_8192.png')
+            .then((texture) => {
+              updateMaterial(this.earth, texture, FrontSide);
+            }),
+          this.loader
+            .loadAsync('../assets/starmap_2020_4k.png')
+            .then((texture) => {
+              updateMaterial(this.sky, texture, BackSide);
+            }),
+        ])
+      );
 
     satelliteService.updatePeriod(1000);
     this.satelliteServiceSubscriber = satelliteService.tracker$.subscribe(
       ({ data: [satellites] }) => {
         this.updateSatMesh(satellites);
-      },
+      }
     );
-    this.breakpointSubscriber = breakpointObserver.observe([
-      '(orientation: portrait)',
-      '(orientation: landscape)',
-    ]).subscribe(() => {
-      this.renderer?.setSize(window.innerWidth, window.innerHeight);
-      this.camera.aspect = window.innerWidth / window.innerHeight;
-      this.camera.updateProjectionMatrix();
-    });
+    this.breakpointSubscriber = breakpointObserver
+      .observe(['(orientation: portrait)', '(orientation: landscape)'])
+      .subscribe(() => {
+        this.renderer?.setSize(window.innerWidth, window.innerHeight);
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+      });
 
     this.createUniverse();
     this.animate(0);
   }
 
   ngOnInit(): void {
-    this.renderer = new WebGLRenderer({ canvas: this.rendererCanvas?.nativeElement });
+    this.renderer = new WebGLRenderer({
+      canvas: this.rendererCanvas?.nativeElement,
+    });
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.target.set(0, 0, 0);
@@ -122,7 +146,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
     this.controls.minDistance = 12;
     this.controls.update();
 
-    this.pageStateSubscriber = this.pageStateService.go$.subscribe(ready => {
+    this.pageStateSubscriber = this.pageStateService.go$.subscribe((ready) => {
       ready && this.display();
     });
   }
@@ -163,14 +187,18 @@ export class SpaceComponent implements OnInit, OnDestroy {
 
   private display(): void {
     if (this.rendererCanvas) {
-      this.rendererCanvas.nativeElement.style.display = "grid";
+      this.rendererCanvas.nativeElement.style.display = 'grid';
     }
     this.renderer?.setSize(window.innerWidth, window.innerHeight);
   }
 
   private animate(timestampMs: number): void {
-    window.requestAnimationFrame((timestamp: number) => this.animate(timestamp));
-    this.earth.rotateY(2 * Math.PI / (24 * 3600 * 1000) * (timestampMs - this.timingFrame));
+    window.requestAnimationFrame((timestamp: number) =>
+      this.animate(timestamp)
+    );
+    this.earth.rotateY(
+      ((2 * Math.PI) / (24 * 3600 * 1000)) * (timestampMs - this.timingFrame)
+    );
     this.timingFrame = timestampMs;
     this.controls?.update();
     this.renderer?.render(this.scene, this.camera);
@@ -178,12 +206,14 @@ export class SpaceComponent implements OnInit, OnDestroy {
 
   private updateSatMesh(satellites: SatelliteGeodetic[]): void {
     const satsArray: BufferGeometry[] = [];
-    satellites.forEach(satellite => {
-      this.satMatrix.setPosition(this.satVector.setFromSphericalCoords(
-        this.EARTH_RADIUS_KM + satellite.alt_km,
-        (Math.PI / 2) - (satellite.lat_deg * Math.PI / 180),
-        (satellite.lon_deg * Math.PI / 180) + (Math.PI / 2),
-      ));
+    satellites.forEach((satellite) => {
+      this.satMatrix.setPosition(
+        this.satVector.setFromSphericalCoords(
+          this.EARTH_RADIUS_KM + satellite.alt_km,
+          Math.PI / 2 - (satellite.lat_deg * Math.PI) / 180,
+          (satellite.lon_deg * Math.PI) / 180 + Math.PI / 2
+        )
+      );
       const geometry = this.satGeometry.clone();
       geometry.applyMatrix4(this.satMatrix);
       satsArray.push(geometry);
@@ -193,7 +223,7 @@ export class SpaceComponent implements OnInit, OnDestroy {
       this.satsGeometry = BufferGeometryUtils.mergeBufferGeometries(satsArray);
       this.sats.geometry.dispose();
       this.sats.geometry = this.satsGeometry;
-      satsArray.forEach(geometry => geometry.dispose());
+      satsArray.forEach((geometry) => geometry.dispose());
     }
   }
 }

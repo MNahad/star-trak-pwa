@@ -15,11 +15,7 @@ import { SpaceComponent } from './space/space.component';
 import { ObserverComponent } from './observer/observer.component';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    SpaceComponent,
-    ObserverComponent,
-  ],
+  declarations: [AppComponent, SpaceComponent, ObserverComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -31,10 +27,10 @@ import { ObserverComponent } from './observer/observer.component';
     MatIconModule,
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,
-      registrationStrategy: 'registerWhenStable:30000'
+      registrationStrategy: 'registerWhenStable:30000',
     }),
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

@@ -7,10 +7,17 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout
+      - name: Checkout gh-pages
         uses: actions/checkout@v2
         with:
+          ref: gh-pages
           submodules: recursive
+      - name: Merge main
+        run: |-
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git fetch origin main:main
+          git merge --no-edit --commit --ff origin/main
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
@@ -24,20 +31,11 @@ jobs:
         working-directory: ./star-trak
       - name: Build app
         run: |-
+          rm -r docs
           npx ng build --prod --output-path docs --base-href /star-trak-pwa/
           cp docs/index.html docs/404.html
-      - name: Pull gh-pages branch
-        uses: actions/checkout@v2
-        with:
-          ref: gh-pages
-          path: gh-pages-workdir
       - name: Commit and push to gh-pages
         run: |-
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          rm -r docs
-          cp -r ../docs .
           git add docs
           git commit -m "generated"
           git push
-        working-directory: ./gh-pages-workdir

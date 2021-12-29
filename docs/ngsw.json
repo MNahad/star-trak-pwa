@@ -1,0 +1,83 @@
+{
+  "configVersion": 1,
+  "timestamp": 1640740635367,
+  "index": "/star-trak-pwa/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/star-trak-pwa/0.98b46d80a009b0b44687.worker.js",
+        "/star-trak-pwa/1.43282753ed6ce4d5f5a5.worker.js",
+        "/star-trak-pwa/favicon.ico",
+        "/star-trak-pwa/index.html",
+        "/star-trak-pwa/main.790b59b7abd4f2c3490d.js",
+        "/star-trak-pwa/manifest.webmanifest",
+        "/star-trak-pwa/polyfills.8c151b8375e767ff858f.js",
+        "/star-trak-pwa/runtime.0e49e2b53282f40c8925.js",
+        "/star-trak-pwa/styles.8ce1f58570549bb8fdb1.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/star-trak-pwa/assets/ISS062-E-148365.JPG",
+        "/star-trak-pwa/assets/icons/maskable_icon_192.png",
+        "/star-trak-pwa/assets/icons/maskable_icon_512.png",
+        "/star-trak-pwa/assets/land_ocean_ice_2048.jpg",
+        "/star-trak-pwa/assets/land_ocean_ice_8192.png",
+        "/star-trak-pwa/assets/starmap_2020_4k.png",
+        "/star-trak-pwa/assets/starmap_2020_4k_print.jpg"
+      ],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [],
+  "hashTable": {
+    "/star-trak-pwa/0.98b46d80a009b0b44687.worker.js": "65c6705a4d6dd7588ff5a172a7e8ac95177305f2",
+    "/star-trak-pwa/1.43282753ed6ce4d5f5a5.worker.js": "a498bb9abf9c00d82a470dbde1ff0c3a637db3d7",
+    "/star-trak-pwa/assets/ISS062-E-148365.JPG": "9a9081ab7388d2b6c1b4ee6adae36a1360b610bd",
+    "/star-trak-pwa/assets/icons/maskable_icon_192.png": "74086fa0af3aa026ea6a89d55e4d6cc2e90fe01b",
+    "/star-trak-pwa/assets/icons/maskable_icon_512.png": "c8b7cf8926c578e958315076313844011ae07974",
+    "/star-trak-pwa/assets/land_ocean_ice_2048.jpg": "c53d442a00605c0fc83213d4febf052e0ec47a25",
+    "/star-trak-pwa/assets/land_ocean_ice_8192.png": "73211817b58311b0610c63059ab6b926bd20d760",
+    "/star-trak-pwa/assets/starmap_2020_4k.png": "ffc5c2416a930dace0390ea5bd50f5a39b47ebfe",
+    "/star-trak-pwa/assets/starmap_2020_4k_print.jpg": "f83f2fb9d7effb12b6bf8d3ce46b60db684efcb2",
+    "/star-trak-pwa/favicon.ico": "a363e69514b986b76bfd55591ea1b6bff6a8d462",
+    "/star-trak-pwa/index.html": "c837d3631a1534d57a0c1289f95714d7db931d81",
+    "/star-trak-pwa/main.790b59b7abd4f2c3490d.js": "63934e4b3271f2e145c73f44676d7f74bf159264",
+    "/star-trak-pwa/manifest.webmanifest": "4bea58f9fa8837bb85d47c4723252a4cf2063bc1",
+    "/star-trak-pwa/polyfills.8c151b8375e767ff858f.js": "763cd3b34dfa4600ebb9d9588ec7116988e98920",
+    "/star-trak-pwa/runtime.0e49e2b53282f40c8925.js": "a9aafcf49f49145093fc831efd9b8e2f6c71bb9c",
+    "/star-trak-pwa/styles.8ce1f58570549bb8fdb1.css": "5b15e2338edc511c0f48992688c8e4ef35de4001"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*\\.[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*\\/.*$"
+    }
+  ],
+  "navigationRequestStrategy": "performance"
+}

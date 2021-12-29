@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 func getData() ([]byte, error) {
@@ -59,5 +60,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/gp", handler)
-	log.Fatal(http.ListenAndServe(":5000", nil))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5000"
+	}
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

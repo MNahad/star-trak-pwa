@@ -87,12 +87,12 @@ export class SpaceComponent implements OnInit, OnDestroy {
     };
     Promise.all([
       this.loader
-        .loadAsync('../assets/land_ocean_ice_2048.jpg')
+        .loadAsync('./assets/land_ocean_ice_2048.jpg')
         .then((texture) => {
           updateMaterial(this.earth, texture, FrontSide);
         }),
       this.loader
-        .loadAsync('../assets/starmap_2020_4k_print.jpg')
+        .loadAsync('./assets/starmap_2020_4k_print.jpg')
         .then((texture) => {
           updateMaterial(this.sky, texture, BackSide);
         }),
@@ -103,12 +103,12 @@ export class SpaceComponent implements OnInit, OnDestroy {
       .then(() =>
         Promise.all([
           this.loader
-            .loadAsync('../assets/land_ocean_ice_8192.png')
+            .loadAsync('./assets/land_ocean_ice_8192.png')
             .then((texture) => {
               updateMaterial(this.earth, texture, FrontSide);
             }),
           this.loader
-            .loadAsync('../assets/starmap_2020_4k.png')
+            .loadAsync('./assets/starmap_2020_4k.png')
             .then((texture) => {
               updateMaterial(this.sky, texture, BackSide);
             }),

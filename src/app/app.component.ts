@@ -32,7 +32,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadingImage.src = '../assets/ISS062-E-148365.JPG';
+    this.loadingImage.src = './assets/ISS062-E-148365.JPG';
     if (this.loadingContainer) {
       this.loadingContainer.nativeElement.style.backgroundImage = `url("${this.loadingImage.src}")`;
     }

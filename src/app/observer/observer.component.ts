@@ -25,9 +25,9 @@ import {
   SatelliteHorizontal,
   SatelliteService,
   SatelliteTopocentric,
-} from '../satellite.service';
-import { SensorService } from '../sensor.service';
-import { PageStateService } from '../page-state.service';
+} from '../satellite.service.js';
+import { SensorService } from '../sensor.service.js';
+import { PageStateService } from '../page-state.service.js';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
@@ -37,6 +37,8 @@ import { filter } from 'rxjs/operators';
   styleUrls: ['./observer.component.css'],
 })
 export class ObserverComponent implements OnInit, OnDestroy {
+  @ViewChild('observerContainer', { static: true })
+  observerContainer: ElementRef<HTMLDivElement> | undefined;
   @ViewChild('videoElement', { static: true })
   videoElement: ElementRef<HTMLVideoElement> | undefined;
   @ViewChild('observerCanvas', { static: true })
@@ -62,15 +64,18 @@ export class ObserverComponent implements OnInit, OnDestroy {
   private cameraMatrix = new Matrix4();
   private cameraFrustum = new Frustum();
   private renderer: WebGLRenderer | undefined;
-  private quaternion = new Quaternion(0, 0, 0, 0);
-  private euler = new Euler(0, 0, 0);
+  private orientationStates = {
+    nineAxis: ObserverComponent.generateOrientationState(),
+    sixAxis: ObserverComponent.generateOrientationState(),
+  };
+  private primaryOrientationSensor: keyof OrientationSensors = 'nineAxis';
 
   private sky = new Object3D();
 
   private satelliteShape = ObserverComponent.generateShape();
   private satelliteGeometry = new ShapeGeometry(this.satelliteShape);
   private satelliteMaterial = new MeshBasicMaterial({
-    color: 0x006400,
+    color: 0x00ff00,
     side: DoubleSide,
   });
   private satellites: Mesh[] = [];
@@ -81,6 +86,8 @@ export class ObserverComponent implements OnInit, OnDestroy {
     sensorService: SensorService,
     pageStateService: PageStateService
   ) {
+    sensorService.requestSensorActivation('nineAxis');
+    sensorService.requestSensorActivation('sixAxis');
     sensorService.requestSensorActivation('geo');
     this.subscribers = {
       capabilitySubscriber: sensorService
@@ -125,21 +132,38 @@ export class ObserverComponent implements OnInit, OnDestroy {
       nineAxisSubscriber: sensorService
         .getSensor$('nineAxis')
         .pipe(filter(SensorService.isReading))
-        .subscribe(({ reading: quaternion }) => {
-          this.quaternion.fromArray(quaternion);
-          this.euler.setFromQuaternion(this.quaternion);
-          this.euler.set(
-            this.euler.x - Math.PI / 2,
-            this.euler.y,
-            this.euler.z
-          );
-          this.quaternion.setFromEuler(this.euler);
+        .subscribe(({ reading }) => {
+          this.updateOrientationState('nineAxis', reading);
+        }),
+      nineAxisStateSub: sensorService
+        .getSensor$('nineAxis')
+        .pipe(filter(SensorService.isState))
+        .subscribe(({ state }) => {
+          if (!state) {
+            if (this.observerEnabled) {
+              this.primaryOrientationSensor = 'sixAxis';
+            }
+          } else {
+            this.primaryOrientationSensor = 'nineAxis';
+          }
         }),
       sixAxisSubscriber: sensorService
         .getSensor$('sixAxis')
         .pipe(filter(SensorService.isReading))
-        .subscribe(({ reading: quaternion }) => {}),
-      pageStateSubscriber: pageStateService.go$.subscribe((ready) => {}),
+        .subscribe(({ reading }) => {
+          this.updateOrientationState(
+            'sixAxis',
+            [reading[0], reading[1], reading[2], reading[3]],
+            reading[4]
+          );
+        }),
+      pageStateSubscriber: pageStateService.go$.subscribe((ready) => {
+        if (this.observerContainer) {
+          this.observerContainer.nativeElement.style.display = ready
+            ? 'grid'
+            : 'none';
+        }
+      }),
     };
     satelliteService.updatePeriod(100);
     pageStateService.signalReady({ from: 'page', state: true });
@@ -149,9 +173,8 @@ export class ObserverComponent implements OnInit, OnDestroy {
     navigator.mediaDevices
       .getUserMedia({
         video: {
-          frameRate: 50,
+          frameRate: { ideal: 50 },
           facingMode: 'environment',
-          width: { ideal: window.innerWidth },
           height: { ideal: window.innerHeight },
         },
       })
@@ -206,6 +229,26 @@ export class ObserverComponent implements OnInit, OnDestroy {
     shape.lineTo(0, 15);
     shape.lineTo(-10, -5);
     return shape;
+  }
+
+  private static generateOrientationState(): OrientationState {
+    return {
+      quaternion: new Quaternion(0, 0, 0, 0),
+      euler: new Euler(0, 0, 0),
+    };
+  }
+
+  private updateOrientationState(
+    sensor: keyof OrientationSensors,
+    reading: number[],
+    offset?: number
+  ): void {
+    const quaternion = this.orientationStates[sensor].quaternion;
+    const euler = this.orientationStates[sensor].euler;
+    quaternion.fromArray(reading);
+    euler.setFromQuaternion(quaternion);
+    euler.set(euler.x - Math.PI / 2, euler.y - (offset ?? 0), euler.z);
+    quaternion.setFromEuler(euler);
   }
 
   private updateSatellites(
@@ -272,7 +315,7 @@ export class ObserverComponent implements OnInit, OnDestroy {
       this.hudCanvas!.nativeElement.width,
       this.hudCanvas!.nativeElement.height
     );
-    this.hudCtx.fillStyle = 'rgb(0, 100, 0)';
+    this.hudCtx.fillStyle = 'rgb(0, 255, 0)';
     this.satellites.forEach((sat) => {
       if (!this.cameraFrustum.intersectsObject(sat)) {
         return;
@@ -287,9 +330,9 @@ export class ObserverComponent implements OnInit, OnDestroy {
       const vertical = -deltaY + this.hudCanvas!.nativeElement.height / 2;
       this.hudCtx!.fillText(
         `
-        ${sat.userData.satellite.name} ${sat.userData.satellite.range.toFixed(
-          3
-        )} KM
+        ${
+          sat.userData.satellite.name
+        } RANGE: ${sat.userData.satellite.range.toFixed(3)} KM
       `,
         horizontal,
         vertical
@@ -304,8 +347,20 @@ export class ObserverComponent implements OnInit, OnDestroy {
       this.camera.matrixWorldInverse
     );
     this.cameraFrustum.setFromProjectionMatrix(this.cameraMatrix);
-    this.camera.rotation.setFromQuaternion(this.quaternion);
+    this.camera.rotation.setFromQuaternion(
+      this.orientationStates[this.primaryOrientationSensor].quaternion
+    );
     this.renderer?.render(this.scene, this.camera);
     this.updateHud();
   }
+}
+
+interface OrientationState {
+  quaternion: Quaternion;
+  euler: Euler;
+}
+
+interface OrientationSensors {
+  nineAxis: OrientationState;
+  sixAxis: OrientationState;
 }

@@ -7,13 +7,7 @@ import { Subject, Observable } from 'rxjs';
 export class SensorService {
   private sensors: Sensors;
   private capability: Capability;
-
-  static isReading<T>(data: SensorData<T>): data is { reading: T } {
-    return 'reading' in data;
-  }
-  static isState<T>(data: SensorData<T>): data is { state: boolean } {
-    return 'state' in data;
-  }
+  private magneticOffset: number | null = null;
 
   constructor() {
     const performance: Capability['performance'] = new Subject();
@@ -40,6 +34,14 @@ export class SensorService {
     this.init();
   }
 
+  static isReading<T>(data: SensorData<T>): data is { reading: T } {
+    return 'reading' in data;
+  }
+
+  static isState<T>(data: SensorData<T>): data is { state: boolean } {
+    return 'state' in data;
+  }
+
   getSensor$<K extends keyof Sensors>(
     sensor: keyof Sensors
   ): Sensors[K]['observable$'] {
@@ -57,8 +59,14 @@ export class SensorService {
     }
   }
 
+  private static quaternionToYaw(q: number[]): number {
+    return Math.atan2(
+      2 * (q[0] * q[1] + q[2] * q[3]),
+      1 - 2 * (q[1] * q[1] + q[2] * q[2])
+    );
+  }
+
   private init(): void {
-    this.requestSensorActivation('nineAxis');
     setInterval(() => this.reportPerformance(), 1000);
   }
 
@@ -136,7 +144,17 @@ export class SensorService {
           break;
         }
         sixAxis.device.onreading = () => {
-          this.updateSensor('nineAxis', true, sixAxis.device!.quaternion!);
+          const quaternion = sixAxis.device!.quaternion!;
+          if (this.sensors.nineAxis.state && this.magneticOffset === null) {
+            this.updateMagneticOffset(
+              this.sensors.nineAxis.device?.quaternion ?? quaternion,
+              quaternion
+            );
+          }
+          this.updateSensor('sixAxis', true, [
+            ...quaternion,
+            this.magneticOffset ?? 0,
+          ]);
         };
         sixAxis.device.onerror = ({ error: { name } }) => {
           switch (name) {
@@ -207,6 +225,15 @@ export class SensorService {
     } else if (!(this.sensors.nineAxis.state || this.sensors.sixAxis.state)) {
       this.capability.performance.next('NO_ORIENTATION');
     }
+  }
+
+  private updateMagneticOffset(
+    nineAxisQuaternion: number[],
+    sixAxisQuaternion: number[]
+  ): void {
+    this.magneticOffset =
+      SensorService.quaternionToYaw(nineAxisQuaternion) -
+      SensorService.quaternionToYaw(sixAxisQuaternion);
   }
 }
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { NavigationEnd, NavigationStart, Router } from '@angular/router';
+import { NavigationStart, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
@@ -18,17 +18,16 @@ export class PageStateService {
     router.events
       .pipe(filter((event) => event instanceof NavigationStart))
       .subscribe(() => {
-        this.go.next(false);
+        this.signalReady({ from: 'page', state: false });
       });
-    router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe(() => {
-        this.go.next(true);
-      });
+    setInterval(() => this.signalGo(), 1000);
   }
 
   signalReady({ from, state }: ReadySignal): void {
     this.pageState[from] = state;
+  }
+
+  private signalGo(): void {
     if (Object.values(this.pageState).every(Boolean)) {
       this.go.next(true);
     } else {

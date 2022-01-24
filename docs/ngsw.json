@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1642631424304,
+  "timestamp": 1643064424025,
   "index": "/star-trak-pwa/index.html",
   "assetGroups": [
     {
@@ -11,11 +11,11 @@
         "ignoreVary": true
       },
       "urls": [
-        "/star-trak-pwa/0.1ad80c2a3396111bb72b.worker.js",
-        "/star-trak-pwa/1.a6e897d280712864b748.worker.js",
+        "/star-trak-pwa/0.705b069fdd5bf518d4b9.worker.js",
+        "/star-trak-pwa/1.5dbdeb2305337c180a37.worker.js",
         "/star-trak-pwa/favicon.ico",
         "/star-trak-pwa/index.html",
-        "/star-trak-pwa/main.4fd38be68f5c2deaa9aa.js",
+        "/star-trak-pwa/main.ef7e9c8556e23a062ddd.js",
         "/star-trak-pwa/manifest.webmanifest",
         "/star-trak-pwa/polyfills.8c151b8375e767ff858f.js",
         "/star-trak-pwa/runtime.0e49e2b53282f40c8925.js",
@@ -44,8 +44,8 @@
   ],
   "dataGroups": [],
   "hashTable": {
-    "/star-trak-pwa/0.1ad80c2a3396111bb72b.worker.js": "7f34999db7301dc4e11115ed6a46f71a2b9541c6",
-    "/star-trak-pwa/1.a6e897d280712864b748.worker.js": "a1ac7efa69ab541937d57d31f448002390d28065",
+    "/star-trak-pwa/0.705b069fdd5bf518d4b9.worker.js": "0c7f44bb9ae4d9f04d392e4c636ba9766607d327",
+    "/star-trak-pwa/1.5dbdeb2305337c180a37.worker.js": "a1ac7efa69ab541937d57d31f448002390d28065",
     "/star-trak-pwa/assets/ISS062-E-148365.JPG": "9a9081ab7388d2b6c1b4ee6adae36a1360b610bd",
     "/star-trak-pwa/assets/icons/maskable_icon_192.png": "74086fa0af3aa026ea6a89d55e4d6cc2e90fe01b",
     "/star-trak-pwa/assets/icons/maskable_icon_512.png": "c8b7cf8926c578e958315076313844011ae07974",
@@ -54,9 +54,9 @@
     "/star-trak-pwa/assets/starmap_2020_4k.png": "ffc5c2416a930dace0390ea5bd50f5a39b47ebfe",
     "/star-trak-pwa/assets/starmap_2020_4k_print.jpg": "f83f2fb9d7effb12b6bf8d3ce46b60db684efcb2",
     "/star-trak-pwa/favicon.ico": "a363e69514b986b76bfd55591ea1b6bff6a8d462",
-    "/star-trak-pwa/index.html": "59b554e1f4ea9bedfce7ef23badebceceb72ef8a",
-    "/star-trak-pwa/main.4fd38be68f5c2deaa9aa.js": "40748bc36d070b49d0ed72d5c1b193d833ccb08c",
-    "/star-trak-pwa/manifest.webmanifest": "4bea58f9fa8837bb85d47c4723252a4cf2063bc1",
+    "/star-trak-pwa/index.html": "250ada847272064349d08d5d3354b141763882ac",
+    "/star-trak-pwa/main.ef7e9c8556e23a062ddd.js": "93617cebdb607ed14f392e2b71080c182a6699af",
+    "/star-trak-pwa/manifest.webmanifest": "ac905373b77ea9c72edd0783886157e4beb7c17e",
     "/star-trak-pwa/polyfills.8c151b8375e767ff858f.js": "763cd3b34dfa4600ebb9d9588ec7116988e98920",
     "/star-trak-pwa/runtime.0e49e2b53282f40c8925.js": "a9aafcf49f49145093fc831efd9b8e2f6c71bb9c",
     "/star-trak-pwa/styles.8ce1f58570549bb8fdb1.css": "5b15e2338edc511c0f48992688c8e4ef35de4001"

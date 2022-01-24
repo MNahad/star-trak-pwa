@@ -1,9 +1,9 @@
 {
-  "name": "star-trak",
-  "short_name": "star-trak",
+  "name": "Star Trak",
+  "short_name": "Star Trak",
   "description": "Track satellites in real time",
-  "theme_color": "#1976d2",
-  "background_color": "#fafafa",
+  "theme_color": "#612cff",
+  "background_color": "#612cff",
   "display": "fullscreen",
   "scope": "./",
   "start_url": "./",
@@ -12,13 +12,19 @@
       "src": "assets/icons/maskable_icon_192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/maskable_icon_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "assets/icons/maskable_icon_512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "maskable"
     }
   ]
 }

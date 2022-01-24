@@ -25,9 +25,9 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
-import { SatelliteService, SatelliteGeodetic } from '../satellite.service';
+import { SatelliteService, SatelliteGeodetic } from '../satellite.service.js';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { PageStateService } from '../page-state.service';
+import { PageStateService } from '../page-state.service.js';
 import { Subscription } from 'rxjs';
 
 @Component({

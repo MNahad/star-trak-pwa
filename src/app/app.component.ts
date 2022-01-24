@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { SatelliteService } from './satellite.service';
-import { PageStateService } from './page-state.service';
+import { SatelliteService } from './satellite.service.js';
+import { PageStateService } from './page-state.service.js';
 
 @Component({
   selector: 'app-root',

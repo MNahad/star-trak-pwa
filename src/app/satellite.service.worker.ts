@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import type { Service } from '../../star-trak/pkg/star_trak';
+import type { Service } from '../../star-trak/pkg/star_trak.js';
 
 const COORDS_PER_STATE = 3;
 let service: Service;
@@ -11,8 +11,7 @@ addEventListener(
   'message',
   ({ data: { gpElements, coords, period } }: MessageEvent<TrackerData>) => {
     if (!service && gpElements && coords) {
-      const gpData = gpElements;
-      import('../../star-trak/pkg/star_trak').then(({ Service }) => {
+      import('../../star-trak/pkg/star_trak.js').then(({ Service }) => {
         service = new Service(
           JSON.stringify(gpElements),
           coords[0],
@@ -23,7 +22,7 @@ addEventListener(
         for (const rawId of idsArray) {
           const id = Number(rawId);
           sgp4Data.push(
-            gpData.find(({ NORAD_CAT_ID }) => NORAD_CAT_ID === id)!
+            gpElements.find(({ NORAD_CAT_ID }) => NORAD_CAT_ID === id)!
           );
         }
         intervalId = setInterval(update, period ?? 1000);

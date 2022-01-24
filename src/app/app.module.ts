@@ -6,13 +6,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module.js';
+import { AppComponent } from './app.component.js';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
-import { environment } from '../environments/environment';
-import { SpaceComponent } from './space/space.component';
-import { ObserverComponent } from './observer/observer.component';
+import { environment } from '../environments/environment.js';
+import { SpaceComponent } from './space/space.component.js';
+import { ObserverComponent } from './observer/observer.component.js';
 
 @NgModule({
   declarations: [AppComponent, SpaceComponent, ObserverComponent],

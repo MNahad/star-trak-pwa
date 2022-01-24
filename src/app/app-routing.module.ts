@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { SpaceComponent } from './space/space.component';
-import { ObserverComponent } from './observer/observer.component';
+import { SpaceComponent } from './space/space.component.js';
+import { ObserverComponent } from './observer/observer.component.js';
 
 const routes: Routes = [
   { path: '', redirectTo: '/space', pathMatch: 'full' },
